@@ -1,17 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-bool compare(const pair<int, string> &a, const pair<int, string> &b)
-{
-    return a.first < b.first;
-}
-
 typedef pair<int, string> node;
 
 map<string, vector<node>> graph;
 priority_queue<node, vector<node>, greater<node>> frontier, temp;
 map<string, string> parent;
 
+// to search frontier if a ciy is already exist and return the current cost to compare it.
 int get_cost_from_frontier(string city)
 {
     temp = frontier;
@@ -27,6 +23,7 @@ int get_cost_from_frontier(string city)
     return 0;
 }
 
+// if we found a city with a cost smaller than its cost in the frontier, so we replace it using this function.
 void set_cost_in_frontier(string city, int new_cost)
 {
     temp = frontier;
@@ -42,6 +39,7 @@ void set_cost_in_frontier(string city, int new_cost)
     }
 }
 
+// Uniforn Cost Search Implementation.
 string uniform_cost_search(string source, string goal)
 {
     pair<int, string> node;
@@ -59,46 +57,54 @@ string uniform_cost_search(string source, string goal)
         string current_city = node.second;
         vis[current_city] = 1; // visited
 
-        // cout << current_city << endl;
-
         if (current_city == goal)
             return "reach goal";
 
         for (const pair<int, string> neighbour : graph[current_city])
         {
             string city = neighbour.second;
-            int cost = neighbour.first;
+            int cost = neighbour.first + node.first;
             if (!(vis[city] || get_cost_from_frontier(city)))
             {
-                cost += node.first;
                 frontier.push({cost, city});
                 parent[city] = current_city;
             }
             else if (get_cost_from_frontier(city) > cost)
             {
                 set_cost_in_frontier(city, cost);
+                parent[city] = current_city;
             }
         }
     }
 }
 
+// get the optimal path after running UCS algorithm
 void get_path(string src, string dest)
 {
     vector<string> ans;
     for (string i = dest; i != src; i = parent[i])
-
+    {
         ans.push_back(i);
-
+    }
+    ans.push_back(src);
+    reverse(ans.begin(), ans.end());
     for (auto a : ans)
-
-        cout << a << endl;
-    cout << src <
+        cout << a << ", ";
+    cout << endl;
 }
 
 int main()
 {
-    freopen("input.txt", "r", stdin);
-    // Reading The Map
+    // Reading The Map From map.txt File
+    freopen("map.txt", "r", stdin);
+
+    /*
+        * first it reads number of cities on the map
+        * then iterate over this number and accept the name of each city and the number of its neighbours
+        * then iterate over the number of neighbours and input the cost and the name of the neighbour city
+        * last thing is to enter source and destionation cities to get the route between.
+    */
+
     int number_of_cities;
     cin >> number_of_cities;
 
@@ -118,11 +124,25 @@ int main()
         }
     }
 
-    cout << uniform_cost_search("Arad",
-                                "Bucharest")
-         << endl;
+    // entering source and destination cities
+    string source, destination;
+    cin >> source >> destination;
 
-    get_path("Arad", "Bucharest");
+    // executes the algorithm and return the state of it
+    string state = uniform_cost_search(source, destination);
+
+    if (state == "reach goal")
+    {
+        cout << "Congratulations! We find the optimal path! Here it is: " << endl
+             << endl;
+        // print the path.
+        get_path(source, destination);
+    }
+    else
+    {
+        // failure state
+        cout << "Unfortunatly, We are very sorry, there is no solution for this problem right now." << endl;
+    }
 
     return 0;
 }
